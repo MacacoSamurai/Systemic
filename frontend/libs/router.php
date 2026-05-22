@@ -13,7 +13,6 @@ class RouteException extends \RuntimeException
 class Route
 {
     private const VALID_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
-
     public readonly string $path;
     public readonly string $method;
     private readonly mixed $callback;
@@ -83,11 +82,15 @@ class Router
 
     protected array $routes = [];
     private string $staticDir;
+    private const debug_enabled = true;
+    private string $basePath;   
 
-    public function __construct(string $staticDir = __DIR__ . '/../pages')
+    public function __construct(string $staticDir = __DIR__ . '/../pages', string $basePath = '')
     {
         $this->staticDir = rtrim($staticDir, '/');
+        $this->basePath  = rtrim($basePath, '/');
     }
+
 
     private function serveStatic(string $path): bool
     {
@@ -148,8 +151,23 @@ class Router
 
     public function dispatch(string $path, string $method): void
     {
+        if (self::debug_enabled) 
+            {
+            error_log("[Router] RAW path: '$path' | method: '$method'");
+            error_log("[Router] REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
+            error_log("[Router] SCRIPT_NAME: " . ($_SERVER['SCRIPT_NAME'] ?? 'N/A'));
+            header('X-Debug-Path: ' . $path);
+            header('X-Debug-Method: ' . $method);
+        }
+        
         $method = strtoupper($method);
-        $path   = rtrim(parse_url($path, PHP_URL_PATH), '/') ?: '/';
+        $path = parse_url($path, PHP_URL_PATH);
+        
+        if ($this->basePath !== '' && str_starts_with($path, $this->basePath)) 
+        {
+            $path = substr($path, strlen($this->basePath));
+        }
+        $path = rtrim($path, '/') ?: '/';
 
         if ($method === 'GET' && $this->serveStatic($path))
             return;
