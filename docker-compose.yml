@@ -25,7 +25,8 @@ services:
       MYSQL_PASSWORD: automax123
     volumes:
       - db_data:/var/lib/mysql
-      - ./backend/Banco_de_Dados/oficina_db_mariadb.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend/Banco_de_Dados/oficina_db_mariadb.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./backend/Banco_de_Dados/seed_funcionarios.sql:/docker-entrypoint-initdb.d/02_seed.sql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s

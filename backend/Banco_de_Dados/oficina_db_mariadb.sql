@@ -74,10 +74,12 @@ CREATE TABLE IF NOT EXISTS produtos (
 -- ============================================================
 CREATE TABLE IF NOT EXISTS funcionarios (
     id_funcionario   INT            NOT NULL AUTO_INCREMENT,
-    senha            VARBINARY(255) NOT NULL,
     nome_funcionario VARCHAR(255)   NOT NULL,
+    email            VARCHAR(255)   NOT NULL,
     nivel_de_acesso  VARCHAR(50)    NOT NULL,
-    PRIMARY KEY (id_funcionario)
+    senha            VARBINARY(255) NOT NULL,
+    PRIMARY KEY (id_funcionario),
+    UNIQUE KEY uq_funcionarios_email (email)
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;

@@ -813,10 +813,43 @@ function fc(v) {
    INIT
 ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+  init_user_display();
   document.getElementById('oAb').value = new Date().toISOString().split('T')[0];
-  // Itens de nav: visibilidade inicial (gerente)
+  // Itens de nav: visibilidade conforme o role real da sessão
   document.querySelectorAll('.rnav').forEach(el =>
     el.style.display = el.classList.contains('r-g') ? 'flex' : 'none'
   );
   renderTbl();
 });
+/* ═══════════════════════════════════════════════
+   USUÁRIO DA SESSÃO
+═══════════════════════════════════════════════ */
+
+/*
+ * Mapeia o nivel_de_acesso vindo do PHP para as classes CSS e label do sidebar.
+ * Fallback seguro para 'mecanico' caso chegue um valor desconhecido.
+ */
+const nivel_para_estilo = {
+  gerente:  { av: 'av-gerente',  pb: 'pb-gerente',  label: 'Gerente' },
+  recepcao: { av: 'av-recepcao', pb: 'pb-recepcao', label: 'Recepcionista' },
+  mecanico: { av: 'av-mecanico', pb: 'pb-mecanico', label: 'Mecânico' },
+};
+
+function init_user_display() {
+  const user = window.__session_user;
+  if (!user || !user.nome) return;
+
+  const estilo = nivel_para_estilo[user.nivel] ?? nivel_para_estilo.mecanico;
+
+  document.getElementById('sbAv').textContent  = user.iniciais;
+  document.getElementById('sbAv').className    = 'av ' + estilo.av;
+  document.getElementById('sbName').textContent = user.nome;
+
+  const role_badge = document.getElementById('sbRole');
+  role_badge.textContent = estilo.label;
+  role_badge.className   = 'pbadge ' + estilo.pb;
+
+  // Sincroniza a variável global de role com o nível real da sessão,
+  // para que as permissões (editar, excluir, nova OS) reflitam o usuário real.
+  role = user.nivel;
+}

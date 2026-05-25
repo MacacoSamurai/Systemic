@@ -328,15 +328,18 @@
                 <h1 class="am-title">Entrar</h1>
                 <p class="am-sub">Acesse sua conta para continuar</p>
  
-                <form action="/auth/login" method="POST">
+                <form action="/auth/login" method="POST" id="login-form">
+
+                    <div id="flash-error" class="am-flash" style="display:none"></div>
+
                     <div class="am-field">
                         <label class="am-label">Email</label>
-                        <input class="am-input" type="email" name="email" placeholder="Digite seu endereço de Email" required>
+                        <input class="am-input" type="email" name="email" id="email" placeholder="Digite seu endereço de Email" required autocomplete="email">
                     </div>
  
                     <div class="am-field">
                         <label class="am-label">Senha</label>
-                        <input class="am-input" type="password" name="senha" placeholder="Digite sua senha" required>
+                        <input class="am-input" type="password" name="senha" id="senha" placeholder="Digite sua senha" required autocomplete="current-password">
                     </div>
  
                     <div class="am-options">
@@ -381,6 +384,31 @@
             </div>
         </div>
     </footer>
- 
+    <style>
+        .am-flash {
+            background: rgba(212, 43, 43, 0.12);
+            border: 1px solid rgba(212, 43, 43, 0.4);
+            border-radius: 4px;
+            color: #f87171;
+            font-size: .85rem;
+            padding: .75rem 1rem;
+            margin-bottom: 1.25rem;
+        }
+    </style>
+
+    <script>
+        // Exibe o flash error injetado pelo PHP (se houver)
+        document.addEventListener('DOMContentLoaded', function () {
+            var mensagem = window.__flash_error;
+            if (!mensagem) return;
+
+            var el = document.getElementById('flash-error');
+            el.textContent = mensagem;
+            el.style.display = 'block';
+
+            // Foca o campo de email para facilitar a correção
+            document.getElementById('email').focus();
+        });
+    </script>
 </body>
 </html>
