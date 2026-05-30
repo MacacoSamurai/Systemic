@@ -69,9 +69,11 @@
 -->
   <!-- Footer -->
   <div class="sb-footer">
-    <button class="btn btn-outline" style="width:100%;justify-content:center" aria-label="Sair do sistema">
-      <i class="bi bi-box-arrow-left" aria-hidden="true"></i>Sair
-    </button>
+    <form method="POST" action="/auth/logout">
+      <button type="submit" class="btn btn-outline" style="width:100%;justify-content:center" aria-label="Sair do sistema">
+        <i class="bi bi-box-arrow-left" aria-hidden="true"></i>Sair
+      </button>
+    </form>
   </div>
 </aside>
 
