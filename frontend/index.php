@@ -88,12 +88,24 @@ function serve_login_page(): void
         session_start();
     }
 
+    /*
+     * Garante que exista um token CSRF na sessão antes de servir o formulário.
+     * Sem isso, qualquer POST de login seria recusado com 403 porque
+     * validate_csrf_token() compararia o token do POST com uma string vazia.
+     */
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+
     $flash_error = $_SESSION['flash_error'] ?? null;
     unset($_SESSION['flash_error']);
+
+    $safe_token = json_encode($_SESSION['csrf_token'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
 
     http_response_code(200);
     header('Content-Type: text/html; charset=UTF-8');
     echo '<base href="/pages/login/">';
+    echo "<script>window.__csrf_token = {$safe_token};</script>";
 
     if ($flash_error !== null) {
         $safe_json = json_encode($flash_error, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
