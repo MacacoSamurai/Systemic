@@ -2,52 +2,33 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/database.php';
+namespace Automax\Controllers;
+
+use Automax\Config\Database;
+use Automax\Config\DatabaseException;
 
 class CadastroController
 {
-    /*
-     * GET /cadastro
-     * Serve a página HTML de cadastro.
-     */
     public static function handle_page(): void
     {
         http_response_code(200);
         header('Content-Type: text/html; charset=UTF-8');
         echo '<base href="/pages/cadastro/">';
-        include __DIR__ . '/pages/cadastro/cadastro.html';
+        include __DIR__ . '/../../pages/cadastro/cadastro.html';
     }
 
-    /*
-     * POST /cadastro/criar
-     *
-     * Fluxo:
-     *   1. Lê e valida o JSON do body
-     *   2. Valida e sanitiza campos do cliente
-     *   3. Valida e sanitiza campos do veículo
-     *   4. Verifica unicidade de CPF e email
-     *   5. Insere cliente (com senha em bcrypt)
-     *   6. Insere veículo vinculado ao cliente
-     *   7. Responde 201 Created ou erro estruturado
-     *
-     * Todas as inserções rodam sem transação explícita por ora —
-     * o FK com ON DELETE CASCADE em veiculos garante consistência
-     * se o insert de veiculo falhar após o de cliente.
-     * TODO: envolver em BEGIN/COMMIT quando o projeto crescer.
-     */
     public static function handle_criar(): void
     {
         $body = self::read_json_body();
 
         if ($body === null) {
-            self::respond(400, 'Corpo da requisição inválido ou ausente.');
+            self::respond(400, 'Corpo da requisiÃ§Ã£o invÃ¡lido ou ausente.');
             return;
         }
 
         $cliente_raw = $body['cliente'] ?? [];
         $veiculo_raw = $body['veiculo'] ?? [];
 
-        // ── Validação dos campos ──────────────────────────────────────────
         $cliente_errors = self::validate_cliente($cliente_raw);
         $veiculo_errors = self::validate_veiculo($veiculo_raw);
 
@@ -57,7 +38,6 @@ class CadastroController
             return;
         }
 
-        // ── Sanitização ───────────────────────────────────────────────────
         $nome_cliente = trim($cliente_raw['nome_cliente']);
         $cpf          = preg_replace('/\D/', '', $cliente_raw['cpf']);
         $celular      = trim($cliente_raw['celular']);
@@ -70,36 +50,29 @@ class CadastroController
         $cor    = trim($veiculo_raw['cor']);
         $placa  = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $veiculo_raw['placa']));
 
-        // ── Unicidade no banco ────────────────────────────────────────────
         try {
             $db = Database::get_instance();
         } catch (DatabaseException $e) {
             error_log('[CadastroController] DB connection error: ' . $e->getMessage());
-            self::respond(503, 'Serviço temporariamente indisponível. Tente novamente em instantes.');
+            self::respond(503, 'ServiÃ§o temporariamente indisponÃ­vel. Tente novamente em instantes.');
             return;
         }
 
         if (self::cpf_ja_cadastrado($db, $cpf)) {
-            self::respond(409, 'Este CPF já está cadastrado. Tente fazer login.');
+            self::respond(409, 'Este CPF jÃ¡ estÃ¡ cadastrado. Tente fazer login.');
             return;
         }
 
         if (self::email_ja_cadastrado($db, $email)) {
-            self::respond(409, 'Este e-mail já está em uso. Tente fazer login ou recuperar a senha.');
+            self::respond(409, 'Este e-mail jÃ¡ estÃ¡ em uso. Tente fazer login ou recuperar a senha.');
             return;
         }
 
         if (self::placa_ja_cadastrada($db, $placa)) {
-            self::respond(409, 'Esta placa já está cadastrada no sistema.');
+            self::respond(409, 'Esta placa jÃ¡ estÃ¡ cadastrada no sistema.');
             return;
         }
 
-        // ── Inserção atômica: cliente + veículo ───────────────────────────
-        /*
-         * Os dois INSERTs rodam dentro de uma transação para garantir que
-         * nunca exista um cliente sem veículo no banco. Se o INSERT do veículo
-         * falhar, o rollback desfaz o INSERT do cliente automaticamente.
-         */
         $senha_hash = password_hash($senha, PASSWORD_BCRYPT, ['cost' => 12]);
 
         try {
@@ -138,7 +111,7 @@ class CadastroController
             $db->rollback();
 
             if (self::is_duplicate_entry($e)) {
-                self::respond(409, 'CPF, e-mail ou placa já cadastrado. Tente fazer login.');
+                self::respond(409, 'CPF, e-mail ou placa jÃ¡ cadastrado. Tente fazer login.');
                 return;
             }
 
@@ -152,81 +125,70 @@ class CadastroController
         ]);
     }
 
-    // ── Validadores de domínio ────────────────────────────────────────────
-
-    /*
-     * Retorna array de mensagens de erro para os campos do cliente.
-     * Array vazio = tudo válido.
-     */
     private static function validate_cliente(array $data): array
     {
         $errors = [];
 
         $nome = trim($data['nome_cliente'] ?? '');
         if (strlen($nome) < 3 || strlen($nome) > 255) {
-            $errors[] = 'Nome completo inválido (3–255 caracteres).';
+            $errors[] = 'Nome completo invÃ¡lido (3â€“255 caracteres).';
         }
 
         $cpf = preg_replace('/\D/', '', $data['cpf'] ?? '');
         if (!self::cpf_valido($cpf)) {
-            $errors[] = 'CPF inválido.';
+            $errors[] = 'CPF invÃ¡lido.';
         }
 
-        $celular = trim($data['celular'] ?? '');
+        $celular    = trim($data['celular'] ?? '');
         $cel_digits = preg_replace('/\D/', '', $celular);
         if (strlen($cel_digits) < 10 || strlen($cel_digits) > 11) {
-            $errors[] = 'Número de celular inválido.';
+            $errors[] = 'NÃºmero de celular invÃ¡lido.';
         }
 
         $email = trim($data['email'] ?? '');
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
-            $errors[] = 'E-mail inválido.';
+            $errors[] = 'E-mail invÃ¡lido.';
         }
 
         $senha = $data['senha'] ?? '';
         if (strlen($senha) < 8) {
-            $errors[] = 'A senha deve ter no mínimo 8 caracteres.';
+            $errors[] = 'A senha deve ter no mÃ­nimo 8 caracteres.';
         }
 
         return $errors;
     }
 
-    /*
-     * Retorna array de mensagens de erro para os campos do veículo.
-     */
     private static function validate_veiculo(array $data): array
     {
         $errors = [];
 
         $marca = trim($data['marca'] ?? '');
         if (strlen($marca) < 2 || strlen($marca) > 100) {
-            $errors[] = 'Marca do veículo inválida.';
+            $errors[] = 'Marca do veÃ­culo invÃ¡lida.';
         }
 
         $modelo = trim($data['modelo'] ?? '');
         if (strlen($modelo) < 2 || strlen($modelo) > 100) {
-            $errors[] = 'Modelo do veículo inválido.';
+            $errors[] = 'Modelo do veÃ­culo invÃ¡lido.';
         }
 
         $ano = trim($data['ano'] ?? '');
         if (!preg_match('/^(19|20)\d{2}(\/\d{2,4})?$/', $ano)) {
-            $errors[] = 'Ano do veículo inválido.';
+            $errors[] = 'Ano do veÃ­culo invÃ¡lido.';
         }
 
         $cor = trim($data['cor'] ?? '');
         if (strlen($cor) < 2 || strlen($cor) > 50) {
-            $errors[] = 'Cor do veículo inválida.';
+            $errors[] = 'Cor do veÃ­culo invÃ¡lida.';
         }
 
         $placa = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $data['placa'] ?? ''));
         if (!self::placa_valida($placa)) {
-            $errors[] = 'Placa inválida. Use o formato ABC-1234 ou ABC1D23.';
+            $errors[] = 'Placa invÃ¡lida. Use o formato ABC-1234 ou ABC1D23.';
         }
 
         return $errors;
     }
-
-    // ── Algoritmo de validação de CPF ─────────────────────────────────────
 
     private static function cpf_valido(string $cpf): bool
     {
@@ -249,16 +211,12 @@ class CadastroController
         return $d1 === (int)$cpf[9] && $d2 === (int)$cpf[10];
     }
 
-    // ── Validação de placa ────────────────────────────────────────────────
-
     private static function placa_valida(string $placa): bool
     {
-        $old_format      = '/^[A-Z]{3}\d{4}$/';      // ABC1234
-        $mercosul_format = '/^[A-Z]{3}\d[A-Z]\d{2}$/'; // ABC1D23
+        $old_format      = '/^[A-Z]{3}\d{4}$/';
+        $mercosul_format = '/^[A-Z]{3}\d[A-Z]\d{2}$/';
         return preg_match($old_format, $placa) || preg_match($mercosul_format, $placa);
     }
-
-    // ── Consultas de unicidade ────────────────────────────────────────────
 
     private static function cpf_ja_cadastrado(Database $db, string $cpf): bool
     {
@@ -284,12 +242,6 @@ class CadastroController
         ) !== null;
     }
 
-    // ── Helpers de I/O ────────────────────────────────────────────────────
-
-    /*
-     * Lê o corpo da requisição como JSON.
-     * Retorna null se o body estiver vazio ou malformado.
-     */
     private static function read_json_body(): ?array
     {
         $raw = file_get_contents('php://input');
@@ -299,20 +251,11 @@ class CadastroController
         return is_array($decoded) ? $decoded : null;
     }
 
-    /*
-     * Detecta erro de entrada duplicada (SQLSTATE 23000).
-     * Cobre race conditions que passam pela verificação prévia.
-     */
     private static function is_duplicate_entry(\PDOException $e): bool
     {
         return str_starts_with($e->getCode(), '23');
     }
 
-    /*
-     * Envia resposta JSON padronizada.
-     *
-     * Estrutura: { "message": "...", ...extra }
-     */
     private static function respond(int $code, string $message, array $extra = []): void
     {
         http_response_code($code);
@@ -323,3 +266,4 @@ class CadastroController
         );
     }
 }
+

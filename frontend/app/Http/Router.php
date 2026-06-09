@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Automax\Http;
+
 class RouteException extends \RuntimeException
 {
     public function __construct(string $message, int $code = 0, ?\Throwable $previous = null)
@@ -82,18 +84,18 @@ class Router
 
     protected array $routes = [];
     private string $staticDir;
+    private string $basePath;
+
     private static function debug_enabled(): bool
     {
         return ($_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG') ?: 'false') === 'true';
     }
-    private string $basePath;   
 
-    public function __construct(string $staticDir = __DIR__ . '/../pages', string $basePath = '')
+    public function __construct(string $staticDir = __DIR__ . '/../../pages', string $basePath = '')
     {
         $this->staticDir = rtrim($staticDir, '/');
         $this->basePath  = rtrim($basePath, '/');
     }
-
 
     private function serveStatic(string $path): bool
     {
@@ -110,9 +112,9 @@ class Router
         if (!is_file($realFile))
             return false;
 
-        $ext      = strtolower(pathinfo($realFile, PATHINFO_EXTENSION));
-        $mime     = self::MIME_TYPES[$ext] ?? 'application/octet-stream';
-        $charset  = str_starts_with($mime, 'text/') ? '; charset=UTF-8' : '';
+        $ext     = strtolower(pathinfo($realFile, PATHINFO_EXTENSION));
+        $mime    = self::MIME_TYPES[$ext] ?? 'application/octet-stream';
+        $charset = str_starts_with($mime, 'text/') ? '; charset=UTF-8' : '';
 
         http_response_code(200);
         header("Content-Type: {$mime}{$charset}");
@@ -154,8 +156,7 @@ class Router
 
     public function dispatch(string $path, string $method): void
     {
-        if (self::debug_enabled())
-        {
+        if (self::debug_enabled()) {
             error_log("[Router] RAW path: '$path' | method: '$method'");
             error_log("[Router] REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
             error_log("[Router] SCRIPT_NAME: " . ($_SERVER['SCRIPT_NAME'] ?? 'N/A'));
@@ -164,10 +165,9 @@ class Router
         }
 
         $method = strtoupper($method);
-        $path = parse_url($path, PHP_URL_PATH);
-        
-        if ($this->basePath !== '' && str_starts_with($path, $this->basePath)) 
-        {
+        $path   = parse_url($path, PHP_URL_PATH);
+
+        if ($this->basePath !== '' && str_starts_with($path, $this->basePath)) {
             $path = substr($path, strlen($this->basePath));
         }
         $path = rtrim($path, '/') ?: '/';
@@ -203,3 +203,4 @@ class Router
         );
     }
 }
+

@@ -2,20 +2,13 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/database.php';
+namespace Automax\Controllers;
+
+use Automax\Config\Database;
+use Automax\Config\DatabaseException;
 
 class AuthController
 {
-    /*
-     * Processa o POST de /auth/login.
-     *
-     * Fluxo:
-     *   1. Lê e sanitiza os campos do formulário
-     *   2. Valida presença dos campos obrigatórios
-     *   3. Busca o funcionário pelo email
-     *   4. Verifica a senha contra o hash armazenado
-     *   5. Abre a sessão PHP ou devolve erro com flash message
-     */
     public static function handle_login(): void
     {
         $email = trim(filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL));
@@ -26,16 +19,11 @@ class AuthController
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            self::redirect_with_error('/auth/login', 'Formato de email inválido.');
+            self::redirect_with_error('/auth/login', 'Formato de email invÃ¡lido.');
         }
 
         $funcionario = self::buscar_funcionario_por_email($email);
 
-        /*
-         * Mesmo quando o funcionário não existe, chamamos password_verify()
-         * com um hash dummy para que o tempo de resposta seja constante.
-         * Isso evita timing attacks que revelam se um email está cadastrado.
-         */
         $hash_dummy   = '$2y$12$invalido.hash.para.timing.constante.AAAAAAAAAAAAAAAAAAA';
         $hash_real    = $funcionario['senha'] ?? $hash_dummy;
         $senha_valida = password_verify($senha, $hash_real);
@@ -54,9 +42,6 @@ class AuthController
         exit;
     }
 
-    /*
-     * Encerra a sessão do usuário e redireciona para o login.
-     */
     public static function handle_logout(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -74,10 +59,6 @@ class AuthController
         exit;
     }
 
-    /*
-     * Verifica se há uma sessão ativa.
-     * Use em rotas protegidas: AuthController::exigir_autenticacao()
-     */
     public static function exigir_autenticacao(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -94,11 +75,6 @@ class AuthController
         }
     }
 
-    /*
-     * Verifica o token CSRF do POST contra o token da sessão.
-     * Encerra com 403 se o token estiver ausente, inválido ou a sessão não existir.
-     * Chame no início de todo handler POST que opera sobre sessão autenticada.
-     */
     public static function validate_csrf_token(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -111,12 +87,10 @@ class AuthController
         if (!$token_sessao || !hash_equals($token_sessao, $token_post)) {
             http_response_code(403);
             header('Content-Type: text/plain; charset=UTF-8');
-            echo 'Requisição inválida.';
+            echo 'RequisiÃ§Ã£o invÃ¡lida.';
             exit;
         }
     }
-
-    // ── Helpers privados ──────────────────────────────────────────────────
 
     private static function buscar_funcionario_por_email(string $email): ?array
     {
@@ -141,10 +115,6 @@ class AuthController
             ]);
         }
 
-        /*
-         * Regenera o ID de sessão após login bem-sucedido.
-         * Isso previne session fixation attacks.
-         */
         session_regenerate_id(true);
 
         $_SESSION['funcionario_id']   = $funcionario['id_funcionario'];
@@ -170,3 +140,4 @@ class AuthController
         exit;
     }
 }
+

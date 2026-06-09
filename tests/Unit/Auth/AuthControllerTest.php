@@ -1,10 +1,11 @@
-<?php
+﻿<?php
 declare(strict_types=1);
 
 namespace Tests\Unit\Auth;
 
 use PHPUnit\Framework\TestCase;
 use Tests\Support\DatabaseMock;
+use Automax\Controllers\AuthController;
 
 class AuthControllerTest extends TestCase
 {
@@ -30,7 +31,7 @@ class AuthControllerTest extends TestCase
     private function runLogin(): void
     {
         ob_start();
-        try { \AuthController::handle_login(); }
+        try { AuthController::handle_login(); }
         catch (\Throwable $e) {}
         finally { ob_end_clean(); }
     }
@@ -38,7 +39,7 @@ class AuthControllerTest extends TestCase
     private function runLogout(): void
     {
         ob_start();
-        try { \AuthController::handle_logout(); }
+        try { AuthController::handle_logout(); }
         catch (\Throwable $e) {}
         finally { ob_end_clean(); }
     }
@@ -135,3 +136,4 @@ class AuthControllerTest extends TestCase
         $this->runLogout();
     }
 }
+

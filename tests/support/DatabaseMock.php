@@ -1,9 +1,11 @@
-<?php
+﻿<?php
 declare(strict_types=1);
 
 namespace Tests\Support;
 
-class DatabaseMock extends \Database
+use Automax\Config\Database;
+
+class DatabaseMock extends Database
 {
     private static ?self $instance = null;
     private array $queryOneReturns = [];
@@ -76,9 +78,10 @@ class DatabaseMock extends \Database
 
     private static function injectIntoSingleton(?self $mock): void
     {
-        $ref  = new \ReflectionClass(\Database::class);
+        $ref  = new \ReflectionClass(Database::class);
         $prop = $ref->getProperty('instance');
         $prop->setAccessible(true);
         $prop->setValue(null, $mock);
     }
 }
+

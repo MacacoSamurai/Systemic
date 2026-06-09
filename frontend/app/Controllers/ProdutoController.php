@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/database.php';
+namespace Automax\Controllers;
 
-class ProdutoNotFoundException extends RuntimeException {}
+use Automax\Config\Database;
+
+class ProdutoNotFoundException extends \RuntimeException {}
 
 class ProdutoController
 {
@@ -15,10 +17,6 @@ class ProdutoController
         $this->db = Database::get_instance();
     }
 
-    /*
-     * Busca um produto pelo seu ID.
-     * Lança ProdutoNotFoundException se não encontrado.
-     */
     public function buscar_por_id(int $id_produto): array
     {
         $produto = $this->db->query_one(
@@ -30,16 +28,12 @@ class ProdutoController
         );
 
         if ($produto === null) {
-            throw new ProdutoNotFoundException("Produto #{$id_produto} não encontrado.");
+            throw new ProdutoNotFoundException("Produto #{$id_produto} nÃ£o encontrado.");
         }
 
         return $produto;
     }
 
-    /*
-     * Retorna produtos da mesma categoria, excluindo o produto atual.
-     * Usado na seção "Produtos Relacionados".
-     */
     public function buscar_relacionados(string $categoria, int $excluir_id, int $limite = 3): array
     {
         return $this->db->query(
@@ -56,10 +50,6 @@ class ProdutoController
         );
     }
 
-    /*
-     * Lista todos os produtos, com paginação simples.
-     * Usado em /produtos (listagem geral).
-     */
     public function listar(int $pagina = 1, int $por_pagina = 12): array
     {
         $offset = ($pagina - 1) * $por_pagina;
@@ -76,3 +66,4 @@ class ProdutoController
         );
     }
 }
+
