@@ -4,7 +4,7 @@ FROM php:8.2-apache
 RUN docker-php-ext-install pdo pdo_mysql mysqli
 
 # Instala Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/local/bin/composer /usr/local/bin/composer
 
 # Habilita mod_rewrite e porta 8081 para a Flowgate
 RUN a2enmod rewrite && \
