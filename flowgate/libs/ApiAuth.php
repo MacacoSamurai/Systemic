@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/../database.php';
 
 /*
  * Middleware de autenticação da Flowgate.
@@ -51,10 +51,6 @@ class ApiAuth
 
     private static function extrair_chave_do_header(): ?string
     {
-        /*
-         * Apache/PHP expõe headers HTTP como variáveis SERVER com prefixo HTTP_.
-         * X-Flowgate-Key → HTTP_X_FLOWGATE_KEY
-         */
         $valor = $_SERVER['HTTP_X_FLOWGATE_KEY'] ?? '';
         return $valor !== '' ? $valor : null;
     }
@@ -74,10 +70,6 @@ class ApiAuth
 
     private static function registrar_log(int $id_key): void
     {
-        /*
-         * Grava audit trail de forma "best-effort": se falhar,
-         * não interrompe a requisição principal.
-         */
         try {
             $db = Database::get_instance();
             $db->execute(
