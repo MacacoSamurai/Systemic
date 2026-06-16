@@ -2,6 +2,10 @@ Claude, você receberá os arquivos do projeto (tanto separado ou em zip), anali
 Quando você for programar, você deve programar que nem gente, cuidando de quando introduz carga mental apra o desenvolvedor, e as funções devem fazer o que elas dizem,
 Separe a lógica em blocos de funções para facil manutenção, seu código deve ser auto-documentativo.
 
+Sempre entregue artefatos separados para o programador modificar ou criar, o dizendo o que ele deve modificar, ele vai ler o artefato, copiar e colar no arquivo correspondente, ou copiar o artefato e criar o arquivo e então colar, mas NÃO FAÇA ZIPs;
+
+Comentários minimos
+
 snake_case para variaveis PascalCase para classes.
 
 Sempre procure propor soluções e situações e demonstre o workflow do projeto ou da feature (ou da tarefa) que você foi pedido para trabalhar, siga princípios de segurança.
@@ -102,6 +106,8 @@ Systemic/
 
 
 Quando for construir uma página web do projeto, você precisa seguir a seguinte palheta e ídeia de estilo:
+
+SEMRRE, SEMPRE REUTILIZE frontend/styles/homepage.css, não crie css não necessário.
 ```
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap');
 
