@@ -1,0 +1,9 @@
+{
+    "name": "systemic/automax-runtime",
+    "description": "Autoload de runtime da Automax dentro do container",
+    "autoload": {
+        "psr-4": {
+            "Automax\\": "app/"
+        }
+    }
+}

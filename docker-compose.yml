@@ -2,15 +2,16 @@ services:
 
   web:
     build: .
+    entrypoint: >
+      bash -c "cd /var/www/html/automax &&
+               composer install --no-dev --optimize-autoloader --no-interaction &&
+               apache2-foreground"
     ports:
-      - "8080:80"    # Automax
-      - "8081:8081"  # Flowgate
+      - "8080:80"
+      - "8081:8081"
     volumes:
       - ./frontend:/var/www/html/automax
       - ./flowgate:/var/www/html/flowgate
-      - ./vendor:/var/www/html/vendor
-      - ./composer.json:/var/www/html/composer.json
-      - ./composer.lock:/var/www/html/composer.lock
     depends_on:
       db:
         condition: service_healthy

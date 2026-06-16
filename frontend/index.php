@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once '/var/www/html/vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 use Automax\Http\Router;
 use Automax\Auth\AccessControl;

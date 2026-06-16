@@ -5,8 +5,8 @@
         "phpunit/phpunit": "^11.0"
     },
     "autoload": {
-        "psr-4": {
-            "Automax\\": "frontend/app/"
+    "psr-4": {
+        "Automax\\": "frontend/app/"
         }
     },
     "autoload-dev": {
