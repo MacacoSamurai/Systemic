@@ -249,15 +249,17 @@ CREATE TABLE IF NOT EXISTS pecas (
 -- 12. Tabela: ordem_pecas
 -- ============================================================
 CREATE TABLE IF NOT EXISTS ordem_pecas (
-    id_ordem_peca     INT NOT NULL AUTO_INCREMENT,
-    id_peca           INT NOT NULL,
-    id_ordem          INT NOT NULL,
-    quantidade_trocas INT DEFAULT 0,
+    id_ordem_peca     INT            NOT NULL AUTO_INCREMENT,
+    id_ordem          INT            NOT NULL,
+    id_peca           INT,
+    nome_peca         VARCHAR(255)   NOT NULL,
+    quantidade_trocas INT            NOT NULL DEFAULT 1,
+    valor_unitario    DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     PRIMARY KEY (id_ordem_peca),
     CONSTRAINT fk_ord_pec_peca
         FOREIGN KEY (id_peca)
         REFERENCES pecas (id_peca)
-        ON DELETE CASCADE
+        ON DELETE SET NULL
         ON UPDATE CASCADE,
     CONSTRAINT fk_ord_pec_ordem
         FOREIGN KEY (id_ordem)
@@ -271,8 +273,6 @@ CREATE TABLE IF NOT EXISTS ordem_pecas (
 
 CREATE TABLE IF NOT EXISTS agendamentos (
     id             INT          NOT NULL AUTO_INCREMENT,
-    id_cliente     INT,
-    id_veiculo     INT,
     nome           VARCHAR(255) NOT NULL,
     telefone       VARCHAR(30)  NOT NULL,
     email          VARCHAR(255),
@@ -289,17 +289,7 @@ CREATE TABLE IF NOT EXISTS agendamentos (
     turno          VARCHAR(10),
     status         VARCHAR(20)  NOT NULL DEFAULT 'pendente',
     criado_em      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_agendamentos_cliente
-        FOREIGN KEY (id_cliente)
-        REFERENCES clientes (id_cliente)
-        ON DELETE SET NULL
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_agendamentos_veiculo
-        FOREIGN KEY (id_veiculo)
-        REFERENCES veiculos (id_veiculo)
-        ON DELETE SET NULL
-        ON UPDATE CASCADE
+    PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Reativa verificações de chave estrangeira

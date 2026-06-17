@@ -41,26 +41,10 @@ function esc(str) {
     .replace(/"/g,  '&quot;')
     .replace(/'/g,  '&#39;');
 }
-/* ── Mapas de dados (mock) ─────────────────── */
-const veicMap = {
-  '1': [{ id:1, label:'Honda Civic 2018 — ABC3D45' }, { id:2, label:'Jeep Compass 2022 — KLM7N89' }],
-  '2': [{ id:3, label:'Toyota Corolla 2020 — XYZ9E12' }],
-  '3': [{ id:4, label:'Volkswagen Gol 2017 — DEF1H23' }],
-  '4': [{ id:5, label:'Ford Ka 2019 — GHI4J56' }],
-};
-
-const funcMap = {
-  '1': 'Jonas Pereira',
-  '2': 'Antônio Lima',
-  '3': 'Luciana Ribeiro',
-};
-
-const cliMap = {
-  '1': { nome:'Flávio Cunha', vip:true },
-  '2': { nome:'Maria Silva',  vip:false },
-  '3': { nome:'Carlos Mota',  vip:false },
-  '4': { nome:'Ana Paula',    vip:true },
-};
+/* ── Mapas de dados (preenchidos via API) ─────── */
+let veicMap  = {};   // { id_cliente: [{id, label}] }
+let funcMap  = {};   // { id_funcionario: 'Nome' }
+let cliMap   = {};   // { id_cliente: { nome, vip } }
 
 const tipoLabel = {
   revisao:   'Revisão Geral',
@@ -86,45 +70,7 @@ const tipoBdg = {
 };
 
 /* ── Ordens (mock inicial) ──────────────────── */
-let ordens = [
-  { id_ordem:1, id_funcionario:'1', id_cliente:'1', id_veiculo:1, tipo_ordem:'revisao',
-    diagnostico:'Veículo apresenta barulho ao frear e óleo abaixo do nível.',
-    abertura:'2025-03-18', prazo:'2025-03-20', fechamento:null, conclusao_ordem:null,
-    mao_de_obra:350, orcamento:780, status:'andamento',
-    pecas:[{nome:'Filtro de Óleo',qtd:1,valor:45},{nome:'Vela de Ignição',qtd:4,valor:28},{nome:'Pastilha de Freio',qtd:1,valor:120}] },
-
-  { id_ordem:2, id_funcionario:'3', id_cliente:'2', id_veiculo:3, tipo_ordem:'pecas',
-    diagnostico:'Correia dentada próxima do limite — troca preventiva.',
-    abertura:'2025-03-17', prazo:'2025-03-18', fechamento:'2025-03-18',
-    conclusao_ordem:'Correia e tensor substituídos.',
-    mao_de_obra:200, orcamento:480, status:'concluida',
-    pecas:[{nome:'Correia Dentada',qtd:1,valor:210},{nome:'Tensor',qtd:1,valor:70}] },
-
-  { id_ordem:3, id_funcionario:'1', id_cliente:'3', id_veiculo:4, tipo_ordem:'emergencia',
-    diagnostico:'Alternador com falha — sem carga na bateria.',
-    abertura:'2025-03-19', prazo:'2025-03-20', fechamento:null, conclusao_ordem:null,
-    mao_de_obra:280, orcamento:680, status:'aguardando',
-    pecas:[{nome:'Alternador Remanufaturado',qtd:1,valor:400}] },
-
-  { id_ordem:4, id_funcionario:'2', id_cliente:'4', id_veiculo:5, tipo_ordem:'vip',
-    diagnostico:'Revisão dos 50.000 km conforme contrato VIP.',
-    abertura:'2025-03-20', prazo:'2025-03-21', fechamento:null, conclusao_ordem:null,
-    mao_de_obra:500, orcamento:1200, status:'aberta',
-    pecas:[{nome:'Filtro de Ar',qtd:1,valor:65},{nome:'Óleo Motor 5W30 4L',qtd:2,valor:120},{nome:'Filtro de Combustível',qtd:1,valor:55},{nome:'Vela NGK Iridium',qtd:4,valor:85}] },
-
-  { id_ordem:5, id_funcionario:'1', id_cliente:'1', id_veiculo:2, tipo_ordem:'pecas',
-    diagnostico:'Amortecedor dianteiro esquerdo com vazamento.',
-    abertura:'2025-03-15', prazo:'2025-03-16', fechamento:null, conclusao_ordem:null,
-    mao_de_obra:180, orcamento:620, status:'atrasada',
-    pecas:[{nome:'Amortecedor Dianteiro',qtd:2,valor:220}] },
-
-  { id_ordem:6, id_funcionario:'3', id_cliente:'2', id_veiculo:3, tipo_ordem:'revisao',
-    diagnostico:'Revisão semestral completa.',
-    abertura:'2025-03-10', prazo:'2025-03-12', fechamento:'2025-03-12',
-    conclusao_ordem:'Revisão concluída sem anomalias.',
-    mao_de_obra:320, orcamento:520, status:'concluida',
-    pecas:[{nome:'Filtro de Óleo',qtd:1,valor:45},{nome:'Óleo Motor',qtd:4,valor:155}] },
-];
+let ordens = [];   // preenchido por carregarDados()
 
 let pecasT = [];
 
@@ -426,7 +372,7 @@ function editFromDet() {
 /* ═══════════════════════════════════════════════
    SALVAR OS
 ═══════════════════════════════════════════════ */
-function salvarOS() {
+async function salvarOS() {
   const fn = document.getElementById('oFunc').value;
   const cl = document.getElementById('oCli').value;
   const ve = document.getElementById('oVeic').value;
@@ -459,7 +405,7 @@ function salvarOS() {
 
   document.getElementById('vMsg').classList.remove('show');
 
-  const obj = {
+  const payload = {
     id_funcionario: fn,
     id_cliente:     cl,
     id_veiculo:     parseInt(ve),
@@ -474,26 +420,33 @@ function salvarOS() {
     pecas:          pecasT,
   };
 
-  if (editId) {
-    const idx = ordens.findIndex(x => x.id_ordem === editId);
-    ordens[idx] = { ...ordens[idx], ...obj };
-    toast('OS atualizada com sucesso!', 'ok');
-  } else {
-    obj.id_ordem = Math.max(0, ...ordens.map(x => x.id_ordem)) + 1;
-    obj.status   = 'aberta';
-    ordens.unshift(obj);
-    toast('Nova OS criada!', 'ok');
-  }
+  const url    = editId ? `/api/ordens/${editId}` : '/api/ordens';
+  const method = editId ? 'PATCH' : 'POST';
 
-  bootstrap.Modal.getInstance(document.getElementById('mOS'))?.hide();
-  renderTbl();
-  if (view === 'kanban') renderKanban();
+  try {
+    const res  = await apiFetch(url, method, payload);
+    const data = await res.json();
+
+    if (!res.ok) {
+      showVali(data.erro ?? 'Erro ao salvar OS.');
+      return;
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('mOS'))?.hide();
+    toast(editId ? 'OS atualizada com sucesso!' : 'Nova OS criada!', 'ok');
+    await carregarOrdens();
+    renderTbl();
+    if (view === 'kanban') renderKanban();
+
+  } catch {
+    showVali('Falha na comunicação com o servidor.');
+  }
 }
 
 /* ═══════════════════════════════════════════════
    FECHAR OS
 ═══════════════════════════════════════════════ */
-function fecharOS() {
+async function fecharOS() {
   if (!editId) return;
   const mo = parseFloat(document.getElementById('oMO').value) || 0;
   if (!pecasT.length && !mo) { showVali('⚠️ Não é possível fechar sem peças e mão de obra.'); return; }
@@ -503,20 +456,32 @@ function fecharOS() {
   const fech = document.getElementById('oFech').value || new Date().toISOString().split('T')[0];
   document.getElementById('oFech').value = fech;
 
-  const idx = ordens.findIndex(x => x.id_ordem === editId);
-  Object.assign(ordens[idx], {
-    status:          'concluida',
+  const payload = {
     fechamento:      fech,
-    conclusao_ordem: document.getElementById('oConc').value,
+    conclusao_ordem: document.getElementById('oConc').value || null,
     mao_de_obra:     mo,
     orcamento:       parseFloat(document.getElementById('oOrc').value) || 0,
     pecas:           pecasT,
-  });
+  };
 
-  bootstrap.Modal.getInstance(document.getElementById('mOS'))?.hide();
-  toast('OS fechada e concluída!', 'ok');
-  renderTbl();
-  if (view === 'kanban') renderKanban();
+  try {
+    const res  = await apiFetch(`/api/ordens/${editId}/fechar`, 'PATCH', payload);
+    const data = await res.json();
+
+    if (!res.ok) {
+      showVali(data.erro ?? 'Erro ao fechar OS.');
+      return;
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('mOS'))?.hide();
+    toast('OS fechada e concluída!', 'ok');
+    await carregarOrdens();
+    renderTbl();
+    if (view === 'kanban') renderKanban();
+
+  } catch {
+    showVali('Falha na comunicação com o servidor.');
+  }
 }
 
 function showVali(msg) {
@@ -535,12 +500,27 @@ function askDel(id) {
   new bootstrap.Modal(document.getElementById('mExc')).show();
 }
 
-function confirmDel() {
-  ordens = ordens.filter(x => x.id_ordem !== delId);
-  bootstrap.Modal.getInstance(document.getElementById('mExc'))?.hide();
-  toast('OS excluída.', 'wn');
-  renderTbl();
-  if (view === 'kanban') renderKanban();
+async function confirmDel() {
+  try {
+    const res  = await apiFetch(`/api/ordens/${delId}`, 'DELETE');
+    const data = await res.json();
+
+    if (!res.ok) {
+      bootstrap.Modal.getInstance(document.getElementById('mExc'))?.hide();
+      toast(data.erro ?? 'Erro ao excluir OS.', 'er');
+      return;
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('mExc'))?.hide();
+    toast('OS excluída.', 'wn');
+    await carregarOrdens();
+    renderTbl();
+    if (view === 'kanban') renderKanban();
+
+  } catch {
+    bootstrap.Modal.getInstance(document.getElementById('mExc'))?.hide();
+    toast('Falha na comunicação com o servidor.', 'er');
+  }
 }
 
 /* ═══════════════════════════════════════════════
@@ -819,14 +799,110 @@ function fc(v) {
 }
 
 /* ═══════════════════════════════════════════════
+   API HELPERS
+═══════════════════════════════════════════════ */
+
+/*
+ * Wrapper para fetch com CSRF e JSON.
+ * Todos os métodos de escrita precisam do token X-CSRF-TOKEN.
+ */
+function apiFetch(url, method = 'GET', body = null) {
+  const csrf   = window.__session_user?.csrf_token ?? '';
+  const opts   = {
+    method,
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+  };
+  if (body !== null) opts.body = JSON.stringify(body);
+  return fetch(url, opts);
+}
+
+/*
+ * Carrega ordens E dados de suporte (clientes, funcionários, veículos).
+ * Chamado uma vez no init.
+ */
+async function carregarDados() {
+  try {
+    const [resSuportes, resOrdens] = await Promise.all([
+      apiFetch('/api/ordem/suporte'),
+      apiFetch('/api/ordens'),
+    ]);
+
+    if (resSuportes.ok) {
+      const suporte = await resSuportes.json();
+
+      // Monta funcMap: { '1': 'Jonas Pereira', ... }
+      funcMap = {};
+      for (const f of (suporte.funcionarios ?? [])) {
+        funcMap[String(f.id)] = f.nome;
+      }
+
+      // Monta cliMap: { '1': { nome: 'Fulano', vip: false }, ... }
+      cliMap = {};
+      for (const c of (suporte.clientes ?? [])) {
+        cliMap[String(c.id)] = { nome: c.nome, vip: false };
+      }
+
+      // veicMap já vem agrupado por id_cliente
+      veicMap = suporte.veiculos_por_cliente ?? {};
+
+      popSelects();
+    }
+
+    if (resOrdens.ok) {
+      const data = await resOrdens.json();
+      ordens = data.ordens ?? [];
+    }
+
+  } catch (e) {
+    console.error('[carregarDados]', e);
+    toast('Erro ao carregar dados. Recarregue a página.', 'er');
+  }
+}
+
+/*
+ * Popula os selects de funcionário e cliente do modal a partir dos mapas.
+ * Chamado uma vez após carregarDados().
+ */
+function popSelects() {
+  const selFunc = document.getElementById('oFunc');
+  const selCli  = document.getElementById('oCli');
+
+  selFunc.innerHTML = '<option value="">Selecione...</option>' +
+    Object.entries(funcMap)
+      .map(([id, nome]) => `<option value="${id}">${nome}</option>`)
+      .join('');
+
+  selCli.innerHTML = '<option value="">Selecione...</option>' +
+    Object.entries(cliMap)
+      .map(([id, c]) => `<option value="${id}">${c.nome}</option>`)
+      .join('');
+}
+
+/*
+ * Recarrega apenas as ordens (usado após criar/editar/deletar).
+ */
+async function carregarOrdens() {
+  try {
+    const res = await apiFetch('/api/ordens');
+    if (res.ok) {
+      const data = await res.json();
+      ordens = data.ordens ?? [];
+    }
+  } catch (e) {
+    console.error('[carregarOrdens]', e);
+  }
+}
+
+/* ═══════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   init_user_display();
   inject_csrf_logout();
   const hoje = new Date().toISOString().split('T')[0];
   document.getElementById('oAb').value = hoje;
   document.getElementById('oAb').max   = hoje;
+  await carregarDados();
   renderTbl();
 });
 
