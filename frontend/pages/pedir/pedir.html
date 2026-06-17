@@ -37,7 +37,7 @@
         </ul>
 
         <div class="navbar-actions d-none d-md-flex">
-          <a href="/auth/login" class="btn-ghost-nav">Entrar</a>
+          <a href="/painel" class="btn-ghost-nav">Minha conta</a>
           <a href="/pedir"      class="btn-red-nav active" aria-current="page">Agendar</a>
         </div>
 
@@ -58,7 +58,7 @@
           <li><a href="https://wa.link/2ub6xt" class="mobile-nav-link" target="_blank" rel="noopener noreferrer">Contato</a></li>
         </ul>
         <div class="mobile-actions">
-          <a href="/auth/login" class="btn-ghost-nav w-100 text-center">Entrar</a>
+          <a href="/painel" class="btn-ghost-nav w-100 text-center">Minha conta</a>
           <a href="/pedir"      class="btn-red-nav w-100 text-center">Agendar</a>
         </div>
       </div>
@@ -130,6 +130,17 @@
               <p class="form-section-title">Dados do veículo</p>
 
               <div class="row g-3">
+                <div class="col-12" id="meusVeiculosWrapper" hidden>
+                  <div class="form-group">
+                    <label class="form-label" for="meuVeiculo">Usar um dos meus veículos cadastrados</label>
+                    <select id="meuVeiculo" class="form-control">
+                      <option value="">Digitar manualmente</option>
+                    </select>
+                    <p class="form-hint">
+                      Selecione um veículo salvo na sua conta ou escolha "Digitar manualmente" para outro veículo.
+                    </p>
+                  </div>
+                </div>
                 <div class="col-12 col-md-4">
                   <div class="form-group">
                     <label class="form-label" for="placa">Placa</label>
@@ -470,6 +481,56 @@
       input.min = `${yyyy}-${mm}-${dd}`;
     })();
 
+    /* Pré-preenche nome/email do cliente logado e carrega seus veículos */
+    (function preencher_dados_cliente() {
+      const user = window.__session_user;
+      if (user && user.nome) {
+        const nomeInput = document.getElementById('nome');
+        if (nomeInput && !nomeInput.value) nomeInput.value = user.nome;
+      }
+
+      fetch('/api/veiculos', { credentials: 'same-origin' })
+        .then(res => res.ok ? res.json() : [])
+        .then(function (veiculos) {
+          if (!Array.isArray(veiculos) || veiculos.length === 0) return;
+
+          const wrapper = document.getElementById('meusVeiculosWrapper');
+          const select  = document.getElementById('meuVeiculo');
+
+          veiculos.forEach(function (v) {
+            const option = document.createElement('option');
+            option.value = v.id_veiculo;
+            option.textContent = `${v.marca} ${v.modelo} — ${v.placa}`;
+            option.dataset.marca  = v.marca;
+            option.dataset.modelo = v.modelo;
+            option.dataset.ano    = v.ano;
+            option.dataset.placa  = v.placa;
+            select.appendChild(option);
+          });
+
+          wrapper.hidden = false;
+
+          select.addEventListener('change', function () {
+            const opt = select.options[select.selectedIndex];
+            if (!opt.value) return;
+
+            const marcaSelect = document.getElementById('marca');
+            const modeloInput = document.getElementById('modelo');
+            const anoInput    = document.getElementById('ano');
+            const placaInput  = document.getElementById('placa');
+
+            const marca = opt.dataset.marca;
+            const marcaExiste = Array.from(marcaSelect.options).some(o => o.value === marca);
+            marcaSelect.value = marcaExiste ? marca : 'Outra';
+
+            modeloInput.value = opt.dataset.modelo;
+            anoInput.value    = opt.dataset.ano;
+            placaInput.value  = opt.dataset.placa;
+          });
+        })
+        .catch(function () { /* silencioso — formulário continua usável manualmente */ });
+    })();
+
     /* Formata placa em maiúsculo */
     document.getElementById('placa').addEventListener('input', function () {
       this.value = this.value.toUpperCase();
@@ -526,7 +587,10 @@
 
       fetch('/api/agendamento', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': window.__session_user?.csrf_token || '',
+        },
         body: JSON.stringify(payload),
       })
       .then(function (res) { return res.json(); })
