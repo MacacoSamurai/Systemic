@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Minha Conta — Automax</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/styles/servicos.css">
+  <link rel="stylesheet" href="/styles/painel.css">
+</head>
+<body>
+
+  <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+
+  <nav class="site-navbar" id="mainNav" aria-label="Navegação principal">
+    <div class="container-xl">
+      <div class="navbar-inner">
+        <a class="navbar-brand-link" href="/" aria-label="Automax — Página inicial">
+          <span class="brand-auto">AUTO</span><span class="brand-max">MAX</span>
+        </a>
+
+        <ul class="navbar-nav-list d-none d-lg-flex" role="list">
+          <li><a href="/"         class="nav-link">Início</a></li>
+          <li><a href="/servicos" class="nav-link">Serviços</a></li>
+          <li><a href="/produtos" class="nav-link">Produtos</a></li>
+          <li><a href="/pedir"    class="nav-link">Agendar</a></li>
+        </ul>
+
+        <div class="navbar-actions d-none d-md-flex">
+          <a href="/painel" class="btn-ghost-nav active" aria-current="page">Minha conta</a>
+          <form method="POST" action="/auth/logout" id="formLogout" class="d-inline">
+            <input type="hidden" name="csrf_token" id="csrfLogout" value="">
+            <button type="submit" class="btn-red-nav" style="border:none;cursor:pointer">Sair</button>
+          </form>
+        </div>
+
+        <button class="mobile-toggle d-lg-none" id="mobileToggle"
+                aria-expanded="false" aria-controls="mobileMenu" aria-label="Abrir menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+      <div class="container-xl">
+        <ul class="mobile-nav-list" role="list">
+          <li><a href="/"         class="mobile-nav-link">Início</a></li>
+          <li><a href="/servicos" class="mobile-nav-link">Serviços</a></li>
+          <li><a href="/produtos" class="mobile-nav-link">Produtos</a></li>
+          <li><a href="/pedir"    class="mobile-nav-link">Agendar</a></li>
+        </ul>
+        <div class="mobile-actions">
+          <a href="/painel" class="btn-ghost-nav w-100 text-center">Minha conta</a>
+          <form method="POST" action="/auth/logout" id="formLogoutMobile">
+            <input type="hidden" name="csrf_token" class="csrf-logout-input" value="">
+            <button type="submit" class="btn-red-nav w-100" style="border:none;cursor:pointer">Sair</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main-content">
+
+    <section class="page-hero" aria-labelledby="hero-heading">
+      <div class="container-xl">
+        <div class="page-hero-eyebrow" aria-hidden="true">
+          <span class="eyebrow-dot"></span>
+          Área do cliente
+        </div>
+        <h1 class="page-hero-title" id="hero-heading">
+          Minha<br>
+          <span class="accent">conta</span>
+        </h1>
+        <p class="page-hero-sub" id="boasVindas">
+          Gerencie seus veículos e acompanhe seus agendamentos.
+        </p>
+      </div>
+    </section>
+
+    <section class="pedir-section" aria-labelledby="painel-heading">
+      <div class="container-xl">
+        <h2 class="visually-hidden" id="painel-heading">Painel da conta</h2>
+
+        <div class="row g-4">
+
+          <div class="col-12 col-lg-7">
+            <div class="form-card">
+              <div class="painel-card-header">
+                <p class="form-section-title" style="margin-bottom:0;border-bottom:none;padding-bottom:0;">
+                  Meus veículos
+                </p>
+                <button type="button" class="btn-primary btn-sm-compact" id="btnNovoVeiculo">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2.5"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Adicionar
+                </button>
+              </div>
+
+              <div id="listaVeiculos" class="painel-lista">
+                <p class="estado-vazio">Carregando seus veículos...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-5">
+            <div class="form-card">
+              <p class="form-section-title">Meus agendamentos</p>
+
+              <div id="listaAgendamentos" class="painel-lista">
+                <p class="estado-vazio">Carregando seus agendamentos...</p>
+              </div>
+
+              <a href="/pedir" class="btn-outline w-100 justify-content-center mt-3" style="display:flex;">
+                Novo agendamento
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: adicionar/editar veículo -->
+  <div class="painel-modal-overlay" id="modalVeiculo" hidden>
+    <div class="painel-modal" role="dialog" aria-modal="true" aria-labelledby="modalVeiculoTitulo">
+      <div class="painel-modal-header">
+        <h3 id="modalVeiculoTitulo">Adicionar veículo</h3>
+        <button type="button" class="painel-modal-close" data-close-modal="modalVeiculo" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="painel-modal-body">
+        <p class="form-error visible" id="erroVeiculo" hidden></p>
+        <input type="hidden" id="veiculoId">
+
+        <div class="form-group">
+          <label class="form-label" for="veiculoMarca">Marca</label>
+          <input type="text" class="form-control" id="veiculoMarca" placeholder="Ex.: Chevrolet" maxlength="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="veiculoModelo">Modelo</label>
+          <input type="text" class="form-control" id="veiculoModelo" placeholder="Ex.: Onix 1.0 Turbo" maxlength="100">
+        </div>
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="form-group">
+              <label class="form-label" for="veiculoAno">Ano</label>
+              <input type="text" class="form-control" id="veiculoAno" placeholder="2020" maxlength="9">
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label class="form-label" for="veiculoCor">Cor</label>
+              <input type="text" class="form-control" id="veiculoCor" placeholder="Ex.: Prata" maxlength="50">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="veiculoPlaca">Placa</label>
+          <input type="text" class="form-control" id="veiculoPlaca" placeholder="ABC-1D23" maxlength="8" style="text-transform:uppercase">
+        </div>
+      </div>
+      <div class="painel-modal-footer">
+        <button type="button" class="btn-outline" data-close-modal="modalVeiculo">Cancelar</button>
+        <button type="button" class="btn-primary" id="btnSalvarVeiculo">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: confirmar exclusão -->
+  <div class="painel-modal-overlay" id="modalExcluir" hidden>
+    <div class="painel-modal painel-modal-sm" role="dialog" aria-modal="true" aria-labelledby="modalExcluirTitulo">
+      <div class="painel-modal-header">
+        <h3 id="modalExcluirTitulo">Remover veículo</h3>
+        <button type="button" class="painel-modal-close" data-close-modal="modalExcluir" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="painel-modal-body">
+        <p>Tem certeza que deseja remover este veículo da sua conta?</p>
+      </div>
+      <div class="painel-modal-footer">
+        <button type="button" class="btn-outline" data-close-modal="modalExcluir">Cancelar</button>
+        <button type="button" class="btn-primary" id="btnConfirmarExcluir">Remover</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const nav    = document.getElementById('mainNav');
+    const toggle = document.getElementById('mobileToggle');
+    const menu   = document.getElementById('mobileMenu');
+
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('nav-scrolled', window.scrollY > 40);
+    }, { passive: true });
+
+    toggle.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+      menu.setAttribute('aria-hidden', String(!open));
+    });
+  </script>
+  <script src="/pages/painel/painel.js"></script>
+</body>
+</html>

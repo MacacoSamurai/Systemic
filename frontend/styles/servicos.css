@@ -811,6 +811,45 @@ select.form-control option { background: var(--carbon-mid); }
   margin: 1.75rem 0;
 }
 
+/* ── Seletor de veículo salvo (cliente logado) ──────────── */
+
+.meus-veiculos-card {
+  background: var(--red-glow);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.meus-veiculos-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: var(--red-vivid);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.meus-veiculos-card .form-group { margin-bottom: 0; flex: 1; min-width: 0; }
+
+.meus-veiculos-card .form-label {
+  color: var(--off-white);
+  font-weight: 700;
+}
+
+.meus-veiculos-card .form-control {
+  background: var(--carbon);
+  border-color: var(--border-accent);
+}
+
+.meus-veiculos-card .form-hint { color: var(--chrome-dim); }
+
 .form-submit-row {
   display: flex;
   align-items: center;

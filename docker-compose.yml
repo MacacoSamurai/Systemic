@@ -3,13 +3,14 @@ services:
   web:
     build: .
     entrypoint: >
-      bash -c "cd /var/www/html/automax &&
+      bash -c "cd /var/www/html &&
                composer install --no-dev --optimize-autoloader --no-interaction &&
                apache2-foreground"
     ports:
       - "8080:80"
       - "8081:8081"
     volumes:
+      - .:/var/www/html
       - ./frontend:/var/www/html/automax
       - ./flowgate:/var/www/html/flowgate
     depends_on:
