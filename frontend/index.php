@@ -11,6 +11,7 @@ use Automax\Controllers\CadastroController;
 use Automax\Controllers\ProdutoController;
 use Automax\Controllers\OrdemController;
 use Automax\Controllers\FornecedorController;
+use Automax\Controllers\ClienteController;
 use Automax\Controllers\ProdutoNotFoundException;
 use Automax\Config\DatabaseException;
 
