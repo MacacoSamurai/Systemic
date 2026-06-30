@@ -1,35 +1,34 @@
+-- Seed: funcionários de desenvolvimento
 --
--- ============================================================
---  Seed: funcionarios
+--  Usuários:
+--    admin@automax.com.br  / automax123   (gerente)
+--    recepcao@automax.com.br / recepcao123 (recepcao)
+--    mecanico@automax.com.br / mecanico123 (mecanico)
 --
---  Insere o usuário administrador padrão para desenvolvimento.
-
---
---  IMPORTANTE: nunca armazene senhas em texto claro.
---  A coluna `senha` deve guardar o retorno de password_hash().
---  Este seed já usa um hash bcrypt gerado com PASSWORD_BCRYPT.
---
---  Usuário de teste:
---    email : admin@automax.com.br
---    senha : automax123   ← trocar antes de ir pra produção
--- ============================================================
+--  NUNCA use estas senhas em produção.
 
 USE oficina_db;
 
--- Usuário gerente para desenvolvimento/testes
 INSERT INTO funcionarios (nome_funcionario, email, nivel_de_acesso, senha)
-VALUES (
-    'Administrador Automax',
-    'admin@automax.com.br',
-    'gerente',
-    -- hash bcrypt de 'automax123' — gerado com password_hash($senha, PASSWORD_BCRYPT)
-    '$2y$12$vgUvZLzh/O4FAZhU4vksD.NK5zxDZGtr3LrpPomA2iSr.iskVUEEW'
-)
+VALUES
+    (
+        'Administrador Automax',
+        'admin@automax.com.br',
+        'gerente',
+        '$2y$12$vgUvZLzh/O4FAZhU4vksD.NK5zxDZGtr3LrpPomA2iSr.iskVUEEW'
+    ),
+    (
+        'Recepção Automax',
+        'recepcao@automax.com.br',
+        'recepcao',
+        '$2y$12$P6LzZ6Upap.mjLQRSELpsu456H24EgZ6IV1y5EECaWbMIi2cByGJu'
+    ),
+    (
+        'Mecânico Automax',
+        'mecanico@automax.com.br',
+        'mecanico',
+        '$2y$12$ZSNimeP7JGpG6bkCO3kio.BvpmGrj4ElbJuHn3wEm8SxeMYs50K7O'
+    )
 ON DUPLICATE KEY UPDATE
     nome_funcionario = VALUES(nome_funcionario),
     nivel_de_acesso  = VALUES(nivel_de_acesso);
-
--- ============================================================
---  Como gerar um novo hash no PHP:
---    echo password_hash('sua_senha_aqui', PASSWORD_BCRYPT);
--- ============================================================
