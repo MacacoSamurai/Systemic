@@ -14,6 +14,7 @@ use Automax\Controllers\EstoqueController;
 use Automax\Controllers\FuncionariosController;
 use Automax\Controllers\ClienteController;
 use Automax\Controllers\AgendamentoController;
+use Automax\Controllers\AgendamentoGerenciaController;
 use Automax\Controllers\LogsController;
 use Automax\Controllers\OrdemController;
 use Automax\Controllers\ProdutoNotFoundException;
@@ -86,6 +87,7 @@ function serve_protected_page(string $base_href, string $file_path): void
         $user_data = [
             'tipo'       => 'cliente',
             'nome'       => $_SESSION['cliente_nome'] ?? '',
+            'email'      => $_SESSION['cliente_email'] ?? '',
             'iniciais'   => build_user_initials($_SESSION['cliente_nome'] ?? ''),
             'permissoes' => AccessControl::permissoes_do_nivel('cliente'),
             'csrf_token' => $_SESSION['csrf_token'] ?? '',
@@ -243,6 +245,11 @@ $router->get('/estoque', function () {
 $router->get('/funcionarios', function () {
     AccessControl::exigir_permissao('funcionarios.visualizar');
     serve_protected_page('/pages/funcionarios/', __DIR__ . '/pages/funcionarios/funcionarios.html');
+});
+
+$router->get('/agendamentos', function () {
+    AccessControl::exigir_permissao('agendamentos.visualizar');
+    serve_protected_page('/pages/agendamentos/', __DIR__ . '/pages/agendamentos/agendamentos.html');
 });
 
 $router->get('/painel', function () {
@@ -407,6 +414,24 @@ $router->get('/api/agendamentos', function () {
 $router->post('/api/agendamento', function () {
     AccessControl::exigir_cliente();
     AgendamentoController::criar();
+});
+
+// API de agendamentos (gestão interna — recepção/gerência)
+
+$router->get('/api/agendamentos/gerenciar', function () {
+    AgendamentoGerenciaController::listar();
+});
+
+$router->post('/api/agendamentos/gerenciar', function () {
+    AgendamentoGerenciaController::criar();
+});
+
+$router->patch('/api/agendamentos/:id/status', function (array $params) {
+    AgendamentoGerenciaController::atualizar_status($params);
+});
+
+$router->delete('/api/agendamentos/:id', function (array $params) {
+    AgendamentoGerenciaController::deletar($params);
 });
 
 // API de perfil

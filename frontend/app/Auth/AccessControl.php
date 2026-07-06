@@ -26,6 +26,9 @@ class AccessControl
             'funcionarios.visualizar',
             'funcionarios.gerenciar',
 
+            'agendamentos.visualizar',
+            'agendamentos.gerenciar',
+
             'logs.visualizar',
         ],
 
@@ -36,6 +39,9 @@ class AccessControl
             'clientes.visualizar',
             'clientes.cadastrar',
             'clientes.editar',
+
+            'agendamentos.visualizar',
+            'agendamentos.gerenciar',
         ],
 
         'mecanico' => [

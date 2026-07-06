@@ -193,16 +193,21 @@ class ClienteController
 
     public static function listar_agendamentos(): void
     {
-        $id_cliente = self::id_cliente_sessao();
+        $email = trim((string) ($_SESSION['cliente_email'] ?? ''));
+
+        if ($email === '') {
+            self::json(200, []);
+            return;
+        }
 
         try {
             $db = Database::get_instance();
             $agendamentos = $db->query_all(
                 'SELECT id, servico, marca, modelo, placa, data_preferida, turno, status, criado_em
                    FROM agendamentos
-                  WHERE id_cliente = :id_cliente
+                  WHERE email = :email
                   ORDER BY data_preferida DESC, id DESC',
-                [':id_cliente' => $id_cliente]
+                [':email' => $email]
             );
             self::json(200, $agendamentos);
         } catch (DatabaseException $e) {
