@@ -45,24 +45,49 @@ class Database
 
     public function query(string $sql, array $params = []): array
     {
-        $stmt = $this->connection->prepare($sql);
-        $stmt->execute($params);
+        $stmt = $this->preparar_e_vincular($sql, $params);
+        $stmt->execute();
         return $stmt->fetchAll();
     }
 
     public function query_one(string $sql, array $params = []): ?array
     {
-        $stmt = $this->connection->prepare($sql);
-        $stmt->execute($params);
+        $stmt = $this->preparar_e_vincular($sql, $params);
+        $stmt->execute();
         $row = $stmt->fetch();
         return $row !== false ? $row : null;
     }
 
     public function execute(string $sql, array $params = []): int
     {
-        $stmt = $this->connection->prepare($sql);
-        $stmt->execute($params);
+        $stmt = $this->preparar_e_vincular($sql, $params);
+        $stmt->execute();
         return $stmt->rowCount();
+    }
+
+    /**
+     * Prepara a query e vincula cada parâmetro preservando seu tipo real.
+     *
+     * Necessário porque, com PDO::ATTR_EMULATE_PREPARES desligado, o
+     * PDOStatement::execute($array) sempre vincula tudo como PDO::PARAM_STR,
+     * o que quebra cláusulas como "LIMIT :limite OFFSET :offset" (o MySQL
+     * exige inteiros nativos ali em prepares nativos).
+     */
+    private function preparar_e_vincular(string $sql, array $params): \PDOStatement
+    {
+        $stmt = $this->connection->prepare($sql);
+
+        foreach ($params as $nome => $valor) {
+            $tipo = match (true) {
+                is_int($valor)  => \PDO::PARAM_INT,
+                is_bool($valor) => \PDO::PARAM_BOOL,
+                is_null($valor) => \PDO::PARAM_NULL,
+                default         => \PDO::PARAM_STR,
+            };
+            $stmt->bindValue($nome, $valor, $tipo);
+        }
+
+        return $stmt;
     }
 
     public function query_all(string $sql, array $params = []): array
