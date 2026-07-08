@@ -50,9 +50,6 @@ function init_user_display() {
   });
 }
 
-    const csrf = document.getElementById('csrfLogout');
-    if (csrf) csrf.value = user.csrf_token ?? '';
-}
 
 function toggleSidebar() {
     const sb   = document.getElementById('sidebar');
@@ -218,7 +215,6 @@ function setup_filtros() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   init_user_display();
-  inject_csrf_logout();
   setup_filtros();
   await carregar_funcionarios();
   await carregar_logs(1);
