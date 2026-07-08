@@ -36,14 +36,19 @@ function init_user_display() {
     role.textContent = user.nivel ? estilo.label : '';
     role.className   = 'pbadge ' + (user.nivel ? estilo.pb : '');
 
-    const perms = user.permissoes || [];
-    document.querySelectorAll('.rnav.r-g').forEach(el => {
-        if (!perms.includes('funcionarios.visualizar') && !perms.includes('logs.visualizar'))
-            el.style.display = 'none';
-    });
-    document.querySelectorAll('.rnav.r-m').forEach(el => {
-        if (!perms.includes('estoque.visualizar')) el.style.display = 'none';
-    });
+  const perms = user.permissoes || [];
+  document.querySelectorAll('.rnav.r-g').forEach(el => {
+    if (!perms.includes('funcionarios.visualizar') && !perms.includes('logs.visualizar')) {
+      el.style.display = 'none';
+    }
+  });
+  document.querySelectorAll('.rnav.r-m').forEach(el => {
+    if (!perms.includes('estoque.visualizar')) el.style.display = 'none';
+  });
+  document.querySelectorAll('.rnav.r-c').forEach(el => {
+    if (!perms.includes('clientes.gerenciar')) el.style.display = 'none';
+  });
+}
 
     const csrf = document.getElementById('csrfLogout');
     if (csrf) csrf.value = user.csrf_token ?? '';
@@ -212,8 +217,9 @@ function setup_filtros() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    init_user_display();
-    setup_filtros();
-    await carregar_funcionarios();
-    await carregar_logs(1);
+  init_user_display();
+  inject_csrf_logout();
+  setup_filtros();
+  await carregar_funcionarios();
+  await carregar_logs(1);
 });
